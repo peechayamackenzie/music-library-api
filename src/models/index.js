@@ -10,8 +10,12 @@ const setupDatabase = () => {
     logging: false,
   });
 
+  const Artist = ArtistModel(connection, Sequelize);
+
   connection.sync({ alter: true });
-  return {};
+  return { 
+      Artist 
+  };
 };
 
 module.exports = setupDatabase();
