@@ -79,6 +79,32 @@ describe('/artists', () => {
             done();
           }).catch(error => done(error));
       });
+
+      it('returns a 404 if the artist does not exist', (done) => {
+        request(app)
+          .get('/artists/12345')
+          .then((res) => {
+            expect(res.status).to.equal(404);
+            expect(res.body.error).to.equal('The artist could not be found.');
+            done();
+          }).catch(error => done(error));
+      });
+    });
+
+    describe('PATCH /artists/:id', () => {
+      it('updates artist genre by id', (done) => {
+        const artist = artists[0];
+        request(app)
+          .patch(`/artists/${artist.id}`)
+          .send({ genre: 'Psychedelic Rock' })
+          .then((res) => {
+            expect(res.status).to.equal(200);
+            Artist.findByPk(artist.id, { raw: true }).then((updatedArtist) => {
+              expect(updatedArtist.genre).to.equal('Psychedelic Rock');
+              done();
+            }).catch(error => done(error));
+          }).catch(error => done(error));
+      });  
     });
   });
 });
