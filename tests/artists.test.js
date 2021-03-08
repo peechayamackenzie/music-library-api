@@ -3,6 +3,7 @@ const request = require('supertest');
 const { Artist } = require('../src/models');
 const app = require('../src/app');
 const { response } = require('../src/app');
+const { reset } = require('nodemon');
 
 describe('/artists', () => {
   before(done => {
@@ -13,8 +14,14 @@ describe('/artists', () => {
   });
 
   beforeEach(done => {
+    console.log("Yes");
     Artist.destroy({ where: {} })
-      .then(() => done()).catch(error => done(error));
+    .then((ArtistDelete) => {
+      console.log(ArtistDelete);
+      done()
+    }).catch(error => {
+        done(error)
+      });
   });
 
   describe('POST /artists', (done) => {
@@ -25,11 +32,11 @@ describe('/artists', () => {
       }).then(response => {
         expect(response.status).to.equal(201);
         expect(response.body.name).to.equal('Tame Impala');
-        
-        const insertedArtistRecords = Artist.findByPk(response.body.id, { raw: true });
-        expect(insertedArtistRecords.name).to.equal('Tame Impala');
-        expect(insertedArtistRecords.genre).to.equal('Rock');
-        done();
+        Artist.findByPk(response.body.id, { raw: true }).then(insertedArtistRecord => {
+          expect(insertedArtistRecord.name).to.equal('Tame Impala');
+          expect(insertedArtistRecord.genre).to.equal('Rock');
+          done();
+        });
       }).catch(error => done(error));
     });
   });
@@ -53,10 +60,10 @@ describe('/artists', () => {
         request(app)
           .get('/artists')
           .then((res) => {
-            expect(res.status).to.equal(200);
-            expect(artists.length).to.equal(3);
+            expect(res.status).to.equal(200)
+            expect(res.body.length).to.equal(3);
             
-            artists.forEach((artist) => {
+            res.body.forEach((artist) => {
               const expected = artists.find((a) => a.id === artist.id);
               expect(artist.name).to.equal(expected.name);
               expect(artist.genre).to.equal(expected.genre);
@@ -104,7 +111,7 @@ describe('/artists', () => {
               done();
             }).catch(error => done(error));
           }).catch(error => done(error));
-      });  
+      });
     });
   });
 });
