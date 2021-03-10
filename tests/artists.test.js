@@ -14,18 +14,16 @@ describe('/artists', () => {
   });
 
   beforeEach(done => {
-    console.log("Yes");
     Artist.destroy({ where: {} })
-    .then((ArtistDelete) => {
-      console.log(ArtistDelete);
+    .then(() => {
       done()
     }).catch(error => {
         done(error)
       });
   });
 
-  describe('POST /artists', (done) => {
-    it('creates a new artist in the database', () => {
+  describe('POST /artists', () => {
+    it('creates a new artist in the database', (done) => {
       request(app).post('/artists').send({
         name: 'Tame Impala',
         genre: 'Rock',
@@ -110,6 +108,41 @@ describe('/artists', () => {
               expect(updatedArtist.genre).to.equal('Psychedelic Rock');
               done();
             }).catch(error => done(error));
+          }).catch(error => done(error));
+      });
+
+      it('returns a 404 if the artist does not exist', (done) => {
+        request(app)
+          .get('/artists/12345')
+          .then((res) => {
+            expect(res.status).to.equal(404);
+            expect(res.body.error).to.equal('The artist could not be found.');
+            done();
+          }).catch(error => done(error));
+      });
+    });
+
+    describe('DELETE /artists/:artistId', () => {
+      it('deletes artist record by id', (done) => {
+        const artist = artists[0];
+        request(app)
+          .delete(`/artists/${artist.id}`)
+          .then((res) => {
+            expect(res.status).to.equal(204);
+            Artist.findByPk(artist.id, { raw: true }).then((updatedArtist) => {
+              expect(updatedArtist).to.equal(null);
+              done();
+            }).catch(error => done(error));
+          }).catch(error => done(error));
+      });
+
+      it('returns a 404 if the artist does not exist', (done) => {
+        request(app)
+          .get('/artists/12345')
+          .then((res) => {
+            expect(res.status).to.equal(404);
+            expect(res.body.error).to.equal('The artist could not be found.');
+            done();
           }).catch(error => done(error));
       });
     });
